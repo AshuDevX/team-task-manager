@@ -1,6 +1,11 @@
-# 🚀 TaskFlow — Team Task Manager
+# TaskFlow — Team Task Manager
 
-A full-stack team task management app with role-based access control (Admin/Member).
+A full-stack web application where users can create projects, assign tasks, and track progress with role-based access control (Admin/Member).
+
+**Live URL:** https://team-task-manager11.up.railway.app  
+**GitHub:** https://github.com/AshuDevX/team-task-manager
+
+---
 
 ## Tech Stack
 
@@ -12,55 +17,52 @@ A full-stack team task management app with role-based access control (Admin/Memb
 | Auth | JWT (JSON Web Tokens) |
 | Deployment | Railway |
 
+---
+
 ## Features
 
-- 🔐 **Authentication** — Signup/Login with JWT
-- 📁 **Project Management** — Create, update, delete projects
-- 👥 **Team Management** — Add/remove members with Admin or Member roles
-- ✅ **Task Tracking** — Create tasks with title, description, status, priority, due date, assignee
-- 📊 **Dashboard** — Personal task overview with overdue alerts
-- 🔒 **Role-Based Access** — Admins manage everything; members update task status only
+- **Authentication** — Signup and Login with JWT-based session management
+- **Role Selection** — Choose Admin or Member role at registration
+- **Project Management** — Admins can create, update, and delete projects
+- **Team Management** — Admins can add or remove members from projects
+- **Task Tracking** — Create tasks with title, description, status, priority, due date, and assignee
+- **Role-Based Access Control** — Admins manage everything; Members can only update task status
+- **Dashboard** — Personal task overview showing total tasks, in-progress, overdue count, and project count
+- **Overdue Alerts** — Visual warning when tasks are past their due date
 
 ---
 
-## 🖥️ Local Setup (macOS + VS Code)
+## Role-Based Access Control
+
+| Action | Admin | Member |
+|--------|-------|--------|
+| Create/delete project | ✅ | ❌ |
+| Add/remove members | ✅ | ❌ |
+| Create/delete tasks | ✅ | ❌ |
+| Assign tasks | ✅ | ❌ |
+| Update task status | ✅ | ✅ |
+| View project & tasks | ✅ | ✅ |
+
+---
+
+## Local Setup
 
 ### Prerequisites
-Make sure you have these installed:
-```bash
-node --version      # Should be v18+
-npm --version       # Should be v9+
-psql --version      # PostgreSQL
+```
+Node.js v18+
+PostgreSQL
 ```
 
-### Install Node.js (if needed)
+### 1. Clone the repository
 ```bash
-# Using Homebrew
-brew install node
-```
-
-### Install PostgreSQL (if needed)
-```bash
-brew install postgresql@15
-brew services start postgresql@15
-```
-
-### Step 1 — Clone / Download the project
-```bash
-cd ~/Desktop
-# If git repo:
-git clone <your-repo-url> team-task-manager
+git clone https://github.com/AshuDevX/team-task-manager.git
 cd team-task-manager
-
-# Or just open the folder in VS Code:
-code .
 ```
 
-### Step 2 — Create the database
+### 2. Create PostgreSQL database
 ```bash
 psql postgres
 ```
-Inside psql:
 ```sql
 CREATE DATABASE taskmanager;
 CREATE USER taskuser WITH ENCRYPTED PASSWORD 'taskpass';
@@ -68,22 +70,21 @@ GRANT ALL PRIVILEGES ON DATABASE taskmanager TO taskuser;
 \q
 ```
 
-### Step 3 — Setup Backend
+### 3. Setup Backend
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env`:
+Edit `.env`:
 ```
 DATABASE_URL="postgresql://taskuser:taskpass@localhost:5432/taskmanager"
-JWT_SECRET="your-random-secret-string-here"
-PORT=5000
+JWT_SECRET="your-secret-key"
+PORT=3001
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 ```
 
-Then install and setup:
 ```bash
 npm install
 npx prisma generate
@@ -91,86 +92,37 @@ npx prisma db push
 node src/prisma/seed.js
 ```
 
-### Step 4 — Setup Frontend
+### 4. Setup Frontend
 ```bash
 cd ../frontend
 cp .env.example .env
-# The default VITE_API_URL=http://localhost:5000 is correct for local dev
 npm install
 ```
 
-### Step 5 — Run the App
+`.env` should contain:
+```
+VITE_API_URL=http://localhost:3001
+```
 
-Open **two terminal tabs** in VS Code (`Ctrl+Shift+`` `):
+### 5. Run the App
 
 **Terminal 1 — Backend:**
 ```bash
-cd backend
-npm run dev
-# → Server running on port 5000
+cd backend && npm run dev
+# Server running on port 3001
 ```
 
 **Terminal 2 — Frontend:**
 ```bash
-cd frontend
-npm run dev
-# → App running at http://localhost:5173
+cd frontend && npm run dev
+# App running at http://localhost:5173
 ```
 
-Open http://localhost:5173 in your browser.
-
-### Demo Accounts (after seed)
+### Demo Accounts
 | Email | Password | Role |
 |-------|----------|------|
 | admin@example.com | admin123 | Admin |
 | member@example.com | member123 | Member |
-
----
-
-## 🌐 Railway Deployment
-
-### Step 1 — Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/team-task-manager.git
-git push -u origin main
-```
-
-### Step 2 — Create Railway Account
-Go to [railway.app](https://railway.app) and sign up with GitHub.
-
-### Step 3 — Deploy Backend
-
-1. Click **"New Project"** → **"Deploy from GitHub repo"**
-2. Select your repository
-3. Click **"Add service"** → select the `backend` folder (or set root directory to `backend`)
-4. Click **"Add service"** → **"Database"** → **"PostgreSQL"**
-5. In your backend service, go to **Variables** tab and add:
-   ```
-   JWT_SECRET=your-random-long-secret-here
-   NODE_ENV=production
-   FRONTEND_URL=https://YOUR-FRONTEND-URL.railway.app
-   ```
-6. Railway auto-injects `DATABASE_URL` from the PostgreSQL service.
-7. The `railway.json` config runs migrations automatically on deploy.
-
-### Step 4 — Deploy Frontend
-
-1. In the same Railway project, click **"New Service"** → **"GitHub Repo"**
-2. Set root directory to `frontend`
-3. Add variable:
-   ```
-   VITE_API_URL=https://YOUR-BACKEND-URL.railway.app
-   ```
-4. Deploy — Railway builds with `npm run build` and serves the `dist/` folder.
-
-### Step 5 — Run Seeds on Railway (optional demo data)
-In Railway backend service → **"Shell"** tab:
-```bash
-node src/prisma/seed.js
-```
 
 ---
 
@@ -185,22 +137,22 @@ GET  /api/auth/me         — Get current user
 
 ### Projects
 ```
-GET    /api/projects                          — List my projects
-POST   /api/projects                          — Create project
-GET    /api/projects/:id                      — Get project details
-PUT    /api/projects/:id                      — Update project (Admin)
-DELETE /api/projects/:id                      — Delete project (Admin)
-POST   /api/projects/:id/members              — Add member (Admin)
-DELETE /api/projects/:id/members/:userId      — Remove member (Admin)
+GET    /api/projects                        — List my projects
+POST   /api/projects                        — Create project (Admin)
+GET    /api/projects/:id                    — Get project with tasks
+PUT    /api/projects/:id                    — Update project (Admin)
+DELETE /api/projects/:id                    — Delete project (Admin)
+POST   /api/projects/:id/members            — Add member (Admin)
+DELETE /api/projects/:id/members/:userId    — Remove member (Admin)
 ```
 
 ### Tasks
 ```
-GET    /api/tasks/dashboard                   — My dashboard stats
-GET    /api/tasks/project/:projectId          — List project tasks
-POST   /api/tasks/project/:projectId          — Create task
-PUT    /api/tasks/project/:projectId/:taskId  — Update task
-DELETE /api/tasks/project/:projectId/:taskId  — Delete task
+GET    /api/tasks/dashboard                         — Dashboard stats
+GET    /api/tasks/project/:projectId                — List project tasks
+POST   /api/tasks/project/:projectId                — Create task
+PUT    /api/tasks/project/:projectId/:taskId        — Update task
+DELETE /api/tasks/project/:projectId/:taskId        — Delete task
 ```
 
 ---
@@ -211,21 +163,59 @@ DELETE /api/tasks/project/:projectId/:taskId  — Delete task
 team-task-manager/
 ├── backend/
 │   ├── prisma/
-│   │   └── schema.prisma       # Database models
+│   │   └── schema.prisma          # User, Project, Task, ProjectMember models
 │   ├── src/
-│   │   ├── controllers/        # Business logic
-│   │   ├── middleware/         # Auth + role checks
-│   │   ├── routes/             # API routes
-│   │   ├── prisma/             # DB client + seed
-│   │   └── index.js            # Express app entry
+│   │   ├── controllers/
+│   │   │   ├── authController.js  # Register, Login, GetMe
+│   │   │   ├── projectController.js
+│   │   │   └── taskController.js
+│   │   ├── middleware/
+│   │   │   └── auth.js            # JWT auth + role checks
+│   │   ├── routes/
+│   │   │   ├── auth.js
+│   │   │   ├── projects.js
+│   │   │   ├── tasks.js
+│   │   │   └── users.js
+│   │   ├── prisma/
+│   │   │   ├── client.js
+│   │   │   └── seed.js
+│   │   └── index.js               # Express entry point
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── components/         # Reusable UI
-│   │   ├── context/            # Auth context
-│   │   ├── pages/              # Route pages
-│   │   ├── api.js              # Axios client
-│   │   └── App.jsx             # Routes
+│   │   ├── components/
+│   │   │   ├── Layout.jsx         # Sidebar navigation
+│   │   │   └── TaskModal.jsx      # Create/edit task modal
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx    # Global auth state
+│   │   ├── pages/
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── RegisterPage.jsx
+│   │   │   ├── DashboardPage.jsx
+│   │   │   ├── ProjectsPage.jsx
+│   │   │   └── ProjectDetailPage.jsx
+│   │   ├── api.js                 # Axios instance with JWT interceptor
+│   │   └── App.jsx                # Routes
 │   └── package.json
 └── README.md
 ```
+
+---
+
+## Database Schema
+
+```
+User          — id, name, email, password, role
+Project       — id, name, description, ownerId
+ProjectMember — userId, projectId, role (ADMIN/MEMBER)
+Task          — id, title, description, status, priority, dueDate, projectId, assigneeId, creatorId
+```
+
+---
+
+## Deployment (Railway)
+
+- **Backend** deployed as a Railway service with root directory set to `backend`
+- **Frontend** deployed as a separate Railway service with root directory set to `frontend`
+- **PostgreSQL** provisioned as a Railway database service
+- Environment variables configured per service on Railway dashboard
